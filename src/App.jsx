@@ -1,93 +1,78 @@
-import { useState, useEffect } from "react"
-import Navbar from "./components/Navbar"
-import VisualizerCanvas from "./components/VisualizerCanvas"
-import Controls from "./components/Controls"
-import PseudocodePanel from "./components/PseudocodePanel"
-import ExplanationPanel from "./components/ExplanationPanel"
-import { generateBubbleSortStates } from "./algorithms/bubbleSort"
+import { Routes, Route, useLocation } from "react-router-dom"
+import { AnimatePresence, motion } from "framer-motion"
+import Landing from "./pages/Landing"
+import Sort from "./pages/Sort"
 
 function App() {
-  const [array, setArray] = useState([])
-  const [states, setStates] = useState([])
-  const [currentStep, setCurrentStep] = useState(0)
-  const [speed, setSpeed] = useState(200)
-
-  const generateArray = () => {
-    const newArray = []
-    for (let i = 0; i < 30; i++) {
-      newArray.push(Math.floor(Math.random() * 300) + 20)
-    }
-    setArray(newArray)
-    setStates([])
-    setCurrentStep(0)
-    setIsPlaying(false)
-  }
-
-  useEffect(() => {
-    generateArray()
-  }, [])
-
-  const startBubbleSort = () => {
-    const generatedStates = generateBubbleSortStates(array)
-    setStates(generatedStates)
-    setCurrentStep(0)
-    setIsPlaying(true)
-  }
-
-  useEffect(() => {
-    if (!isPlaying) return
-
-    if (currentStep >= states.length) {
-      setIsPlaying(false)
-      return
-    }
-
-    const timer = setTimeout(() => {
-      setCurrentStep((prev) => prev + 1)
-    }, speed)
-
-    return () => clearTimeout(timer)
-  }, [isPlaying, currentStep, states])
-
-  const displayedArray =
-    states.length > 0 && states[currentStep]
-      ? states[currentStep].array
-      : array
-
-  const currentState =
-    states.length > 0 && states[currentStep]
-      ? states[currentStep]
-      : null
+  const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <Navbar />
+    <div className="relative min-h-screen overflow-hidden bg-gray-950">
 
-      <div className="p-6 space-y-6">
-        <h1 className="text-3xl font-bold text-blue-400">
-          Bubble Sort Visualization
-        </h1>
+      {/* 🌌 Background */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-blue-900 via-gray-950 to-purple-900"
+        initial={{ scale: 1.1 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+      />
 
-        <VisualizerCanvas
-          array={displayedArray}
-          currentState={currentState}
-        />
+      {/* 🌫 Floating glow */}
+      <motion.div
+        className="absolute inset-0 opacity-20"
+        animate={{ x: [0, -40, 0] }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        style={{
+          background:
+            "radial-gradient(circle at 30% 30%, #3b82f6 0%, transparent 50%)"
+        }}
+      />
 
-        <Controls
-          generateArray={generateArray}
-          startBubbleSort={startBubbleSort}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-          speed={speed}
-          setSpeed={setSpeed}
-        />
+      {/* 📄 Content */}
+      <div className="relative z-10">
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
 
-        <PseudocodePanel />
-        <ExplanationPanel
-          explanation={currentState?.explanation}
-        />
+            <Route
+              path="/"
+              element={
+                <PageTransition>
+                  <Landing />
+                </PageTransition>
+              }
+            />
+
+            <Route
+              path="/sort"
+              element={
+                <PageTransition>
+                  <Sort />
+                </PageTransition>
+              }
+            />
+
+          </Routes>
+        </AnimatePresence>
       </div>
     </div>
+  )
+}
+
+function PageTransition({ children }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -40, filter: "blur(8px)" }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="min-h-screen"
+    >
+      {children}
+    </motion.div>
   )
 }
 
